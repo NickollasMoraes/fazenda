@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2f7d45" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon-192.svg" type="image/svg+xml" />
+    <title>Fazendinha</title>
+    <style>
+      html, body, #game { width: 100%; height: 100%; margin: 0; }
+      html, body { overflow: hidden; }
+      body { background: #2f7d45; }
+      #game { min-width: 360px; }
+      #connection-overlay { position: fixed; inset: 0; z-index: 1000; display: grid;
+        place-items: center; background: #2f7d45 url('./assets/splash-bg-Cfma3Szk.webp')
+        center / cover no-repeat; color: #fff8dc; font: 18px Arial; text-align: center;
+        padding: 24px; box-sizing: border-box; }
+      #connection-overlay::before { content: ""; position: absolute; inset: 0;
+        background: linear-gradient(180deg, rgb(22 88 104 / 0.18), rgb(39 96 54 / 0.72)); }
+      #connection-overlay[hidden] { display: none; }
+      .loading-card { position: relative; z-index: 1; width: min(100%, 380px); display: grid;
+        justify-items: center; gap: 12px; padding: 28px 24px; box-sizing: border-box;
+        border: 6px solid #9a603b; border-radius: 22px; background: rgb(255 240 199 / 0.94);
+        color: #4a2e1a; box-shadow: 0 10px 32px rgb(0 0 0 / 0.3); }
+      .loading-logo { width: 120px; height: 100px; object-fit: contain; }
+      .loading-title { margin: 0; color: #fffdf0; font: bold 40px Fredoka, Arial, sans-serif;
+        text-shadow: 0 3px 0 #4a2e1a, 0 5px 8px rgb(0 0 0 / 0.28); }
+      .loading-message { margin: 0; color: #4a2e1a; font: 16px Fredoka, Arial, sans-serif; }
+      .loading-progress { width: min(100%, 300px); height: 22px; padding: 3px;
+        border: 2px solid #60381f; border-radius: 16px; background: #60381f; box-sizing: border-box; }
+      .loading-progress-value { width: 0%; height: 100%; border-radius: 10px;
+        background: linear-gradient(90deg, #55a84f, #9bd34d); transition: width 120ms ease; }
+      #connection-overlay button { margin-top: 4px; padding: 11px 20px; border: 0;
+        border-radius: 12px; background: #55a84f; color: #fffdf0; font: bold 15px Fredoka, Arial;
+        cursor: pointer; }
+      #orientation-notice { position: fixed; inset: 0; z-index: 980; display: grid;
+        place-items: center; padding: 24px; box-sizing: border-box; text-align: center;
+        background: rgb(39 96 54 / 0.9); color: #fffdf0; font: 18px Fredoka, Arial, sans-serif; }
+      #orientation-notice[hidden] { display: none; }
+      .orientation-card { width: min(100%, 340px); padding: 24px; border-radius: 20px;
+        background: #fff0c7; color: #4a2e1a; box-shadow: 0 8px 28px rgb(0 0 0 / 0.3); }
+      .orientation-card p { margin: 0 0 16px; }
+      .orientation-card button { padding: 10px 18px; border: 0; border-radius: 12px;
+        background: #55a84f; color: #fffdf0; font: bold 15px Fredoka, Arial; }
+      #dev-badge { position: fixed; right: 8px; top: 8px; z-index: 900; color: #fff8dc;
+        background: #8b5a3c; border-radius: 5px; padding: 4px 7px; font: 10px Arial; }
+      #dev-badge[hidden] { display: none; }
+      .account-modal-backdrop { position: fixed; inset: 0; z-index: 1100; display: grid;
+        place-items: center; background: rgb(74 46 26 / 0.72); padding: max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+        box-sizing: border-box; touch-action: none; }
+      .account-modal-backdrop[hidden] { display: none; }
+      .account-modal { position: relative; width: min(100%, 380px); max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
+        overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+        box-sizing: border-box; padding: 46px 24px 24px;
+        border: 8px solid #9a603b; border-radius: 18px; background: #fff0c7;
+        color: #4a2e1a; font: 16px Arial; box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
+        touch-action: auto; }
+      .account-modal h2 { margin: 4px 0 12px; color: #4a2e1a; text-align: center;
+        font-family: Fredoka, Arial, sans-serif; }
+      .account-modal p { line-height: 1.4; }
+      .account-modal label { display: block; margin: 12px 0; font-weight: bold; }
+      .account-modal label[hidden] { display: none; }
+      .account-modal input { display: block; width: 100%; box-sizing: border-box; margin-top: 5px;
+        padding: 11px; border: 2px solid #d6a66a; border-radius: 9px; font-size: 16px;
+        background: #fff8dc; color: #4a2e1a; }
+      .account-modal button { width: 100%; margin-top: 10px; padding: 11px; border: 0;
+        border-radius: 12px; background: #55a84f; color: #fffdf0; font-weight: bold;
+        font-size: 15px; }
+      .account-modal button:disabled { opacity: 0.55; }
+      .account-modal .account-modal-close { position: absolute; top: 10px; right: 10px;
+        width: 38px; height: 38px; margin: 0; padding: 0; border: 2px solid #60381f;
+        border-radius: 50%; background: #d9534f; color: #fffdf0; font-size: 0; }
+      .account-modal .account-modal-close::before { content: "×"; font-size: 24px;
+        line-height: 34px; }
+      @media (max-width: 430px), (max-height: 700px) {
+        .account-modal { padding: 42px 16px 16px; border-width: 6px; }
+        .account-modal p { margin: 8px 0; }
+        .account-modal label { margin: 8px 0; }
+        .account-modal button { margin-top: 8px; padding: 10px; }
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-CqQ3N-wY.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/phaser-B61OQUcB.js">
+    <link rel="modulepreload" crossorigin href="./assets/game-core-BHV4JKZ9.js">
+    <link rel="modulepreload" crossorigin href="./assets/game-ui-BnfTAkBP.js">
+    <link rel="modulepreload" crossorigin href="./assets/game-scenes-CtBf4vDJ.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-DQBm8K0d.css">
+  </head>
+  <body>
+    <div id="game" aria-label="Jogo Fazendinha"></div>
+    <div id="connection-overlay" role="status" aria-live="polite">Conectando à fazenda…</div>
+    <div id="orientation-notice" hidden aria-live="polite">
+      <div class="orientation-card">
+        <p class="orientation-message">Vire o aparelho para jogar na horizontal.</p>
+        <button type="button" id="orientation-fullscreen">Tela cheia</button>
+      </div>
+    </div>
+    <div id="dev-badge" hidden>MODO DEV</div>
+  </body>
+</html>

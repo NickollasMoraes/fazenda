@@ -1,0 +1,19 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64">
+  <rect
+  x="8"
+  y="8"
+  width="48"
+  height="48"
+  rx="8"
+  fill="#8b5a3c"
+  stroke="#5d3b2b"
+  stroke-width="3"/>
+  <path
+  d="M32 48V26M32 35c-9-8-14-4-15 0 7 5 11 5 15 0m0-4c8-10 14-5 15-1-6 6-10 7-15 1"
+  fill="#78b857"
+  stroke="#4b8d42"
+  stroke-width="2"
+  stroke-linejoin="round"/>
+</svg>
